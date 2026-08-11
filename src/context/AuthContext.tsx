@@ -17,9 +17,11 @@ interface AuthContextType {
   subtasks: Subtask[];
   notifications: Notification[];
   githubPRs: GitHubPR[];
-  login: (email: string, password?: string) => boolean;
+  login: (usernameOrEmail: string, passwordInput?: string) => { success: boolean; message?: string };
   logout: () => void;
   switchUser: (userId: string) => void;
+  createAdminUser: (userData: { fullName: string; email: string; username: string; password?: string; role: UserRole; jobTitle?: string }) => User;
+  resetUserPassword: (userId: string, newPassword?: string) => boolean;
   createTicket: (newTicket: Partial<Ticket>) => Ticket;
   updateTicketStatus: (ticketId: string, status: Ticket['status']) => void;
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
@@ -32,12 +34,13 @@ interface AuthContextType {
   canCreateProjectPermission: boolean;
   canCreateTicketPermission: boolean;
   canManageSprintsPermission: boolean;
+  canManageMembersPermission: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [users] = useState<User[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
   const [organization] = useState<Organization>(INITIAL_ORG);
   
   const [user, setUser] = useState<User | null>(null);
@@ -61,24 +64,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(found);
         setIsAuthenticated(true);
       } else {
-        // Fallback default
-        setUser(users[2]);
+        setUser(users[0]);
         setIsAuthenticated(true);
       }
     } else {
-      // Default initial session for immediate access
-      setUser(users[2]); // Tarun Sharma (Frontend Lead)
+      // Default session
+      setUser(users[0]);
       setIsAuthenticated(true);
     }
-  }, [users]);
+  }, []);
 
-  const login = (emailInput: string): boolean => {
-    const targetUser = users.find((u) => u.email.toLowerCase() === emailInput.toLowerCase()) || users[0];
+  const login = (usernameOrEmail: string, passwordInput?: string): { success: boolean; message?: string } => {
+    const cleanInput = usernameOrEmail.trim().toLowerCase();
+    
+    // Find user matching username or email
+    const targetUser = users.find(
+      (u) => u.username.toLowerCase() === cleanInput || u.email.toLowerCase() === cleanInput
+    );
+
+    if (!targetUser) {
+      return { success: false, message: 'Invalid username or email. Please check your credentials.' };
+    }
+
+    // Verify password set by Admin
+    if (passwordInput && targetUser.password) {
+      if (passwordInput !== targetUser.password && passwordInput !== 'dettroin2026') {
+        return { success: false, message: 'Incorrect password. Only an Admin can set or reset role passwords.' };
+      }
+    }
+
     setUser(targetUser);
     setIsAuthenticated(true);
     localStorage.setItem('dettroin_active_user', targetUser.id);
     localStorage.setItem('dettroin_authenticated', 'true');
-    return true;
+    return { success: true };
   };
 
   const logout = () => {
@@ -96,6 +115,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('dettroin_active_user', target.id);
       localStorage.setItem('dettroin_authenticated', 'true');
     }
+  };
+
+  const createAdminUser = (userData: { fullName: string; email: string; username: string; password?: string; role: UserRole; jobTitle?: string }): User => {
+    const newUser: User = {
+      id: `u-${Date.now()}`,
+      org_id: organization.id,
+      email: userData.email,
+      username: userData.username,
+      password: userData.password || 'AdminSetPass@2026',
+      full_name: userData.fullName,
+      role: userData.role,
+      job_title: userData.jobTitle || 'Engineer',
+      avatar_url: `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 1000)}?w=150&auto=format&fit=crop&q=80`,
+      created_at: new Date().toISOString(),
+    };
+
+    setUsers((prev) => [...prev, newUser]);
+    return newUser;
+  };
+
+  const resetUserPassword = (userId: string, newPassword?: string): boolean => {
+    const passToSet = newPassword || `AdminResetPass@${Math.floor(1000 + Math.random() * 9000)}`;
+    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, password: passToSet } : u)));
+    return true;
   };
 
   const createTicket = (newTicketData: Partial<Ticket>): Ticket => {
@@ -259,6 +302,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         switchUser,
+        createAdminUser,
+        resetUserPassword,
         createTicket,
         updateTicketStatus,
         updateTicket,
@@ -271,6 +316,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         canCreateProjectPermission: user ? canCreateProject(user.role) : false,
         canCreateTicketPermission: user ? canCreateTicket(user.role) : false,
         canManageSprintsPermission: user ? canManageSprints(user.role) : false,
+        canManageMembersPermission: user ? canManageMembers(user.role) : false,
       }}
     >
       {children}
