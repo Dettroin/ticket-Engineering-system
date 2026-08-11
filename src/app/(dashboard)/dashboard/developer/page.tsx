@@ -4,16 +4,13 @@ import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { Avatar } from '@/components/ui/Avatar';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
 import { STATUS_COLORS, STATUS_LABELS, TICKET_TYPE_COLORS, TICKET_TYPE_LABELS, PRIORITY_COLORS, PRIORITY_LABELS } from '@/types/tickets';
 import {
   Code,
   CheckSquare,
-  AlertTriangle,
-  GitPullRequest,
   UserCheck,
-  ArrowRight,
-  Clock,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -21,7 +18,6 @@ export default function DeveloperDashboardPage() {
   const { user, tickets } = useAuth();
 
   const myTickets = tickets.filter((t) => t.assignee_id === user?.id && t.status !== 'closed' && t.status !== 'resolved');
-  const myHighPriority = myTickets.filter((t) => t.priority === 'urgent' || t.priority === 'high');
 
   // Cross-team Dependency Highlights
   const waitingForBackend = tickets.filter((t) => (t.type === 'api_issue' || t.type === 'database_issue') && t.status !== 'resolved' && t.status !== 'closed');
@@ -30,14 +26,14 @@ export default function DeveloperDashboardPage() {
 
   return (
     <PermissionGuard allowedRoles={['super_admin', 'admin', 'project_manager', 'team_lead', 'developer', 'frontend_developer', 'backend_developer']}>
-      <div className="space-y-6">
+      <div className="space-y-6 font-sf-text">
         {/* Header */}
         <div className="bg-navy-950 text-white rounded-3xl p-6 shadow-apple-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <img src={user?.avatar_url} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/30 shadow-lg" />
+            <Avatar name={user?.full_name || 'Developer'} size="xl" className="border-2 border-white/30" />
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white tracking-tight">{user?.full_name}'s Developer Workstation</h1>
+                <h1 className="text-xl font-bold text-white tracking-tight font-sf-display">{user?.full_name}'s Developer Workstation</h1>
                 <span className="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">
                   Developer Mode
                 </span>
@@ -63,7 +59,7 @@ export default function DeveloperDashboardPage() {
         {/* Cross-Team Dependency Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="border-l-4 border-l-purple-600 space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-purple-700 flex items-center gap-1.5 font-sf-display">
               <Code className="w-4 h-4" /> Waiting for Backend ({waitingForBackend.length})
             </h3>
             <p className="text-[11px] text-slate-500 font-medium">API schema, payloads, SQL view queries</p>
@@ -78,7 +74,7 @@ export default function DeveloperDashboardPage() {
           </Card>
 
           <Card className="border-l-4 border-l-sky-600 space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-sky-700 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-sky-700 flex items-center gap-1.5 font-sf-display">
               <Code className="w-4 h-4" /> Waiting for Frontend ({waitingForFrontend.length})
             </h3>
             <p className="text-[11px] text-slate-500 font-medium">UI component binding or API integration</p>
@@ -93,7 +89,7 @@ export default function DeveloperDashboardPage() {
           </Card>
 
           <Card className="border-l-4 border-l-amber-600 space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5 font-sf-display">
               <UserCheck className="w-4 h-4" /> Waiting for QA ({waitingForQA.length})
             </h3>
             <p className="text-[11px] text-slate-500 font-medium">Tickets in Code Review or Testing</p>
@@ -111,7 +107,7 @@ export default function DeveloperDashboardPage() {
         {/* My Open Tickets Table */}
         <Card className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-navy-950 uppercase tracking-wider">My Active Tickets & Tasks ({myTickets.length})</h2>
+            <h2 className="text-sm font-bold text-navy-950 uppercase tracking-wider font-sf-display">My Active Tickets & Tasks ({myTickets.length})</h2>
             <Link href="/tickets" className="text-xs text-navy-700 font-bold hover:underline">
               View all →
             </Link>

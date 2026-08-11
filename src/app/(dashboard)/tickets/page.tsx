@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Avatar } from '@/components/ui/Avatar';
 import { STATUS_COLORS, STATUS_LABELS, TICKET_TYPE_COLORS, TICKET_TYPE_LABELS, PRIORITY_COLORS, PRIORITY_LABELS } from '@/types/tickets';
 import { Ticket as TicketIcon, Search, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
@@ -29,11 +30,11 @@ export default function TicketsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sf-text">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-navy-950 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-navy-950 flex items-center gap-2 font-sf-display">
             <TicketIcon className="w-5 h-5 text-navy-800" /> Engineering Ticket Central
           </h1>
           <p className="text-xs text-slate-500 font-medium">All technical bugs, tasks, API issues, and feature requests</p>
@@ -145,7 +146,7 @@ export default function TicketsPage() {
                   <td className="px-4 py-3.5">
                     {ticket.assignee ? (
                       <div className="flex items-center gap-1.5">
-                        <img src={ticket.assignee.avatar_url} className="w-5 h-5 rounded-full object-cover" />
+                        <Avatar name={ticket.assignee.full_name} size="xs" />
                         <span className="text-slate-800 font-medium">{ticket.assignee.full_name}</span>
                       </div>
                     ) : (
@@ -155,7 +156,7 @@ export default function TicketsPage() {
                   <td className="px-4 py-3.5">
                     {ticket.reporter ? (
                       <div className="flex items-center gap-1.5">
-                        <img src={ticket.reporter.avatar_url} className="w-5 h-5 rounded-full object-cover" />
+                        <Avatar name={ticket.reporter.full_name} size="xs" />
                         <span className="text-slate-600">{ticket.reporter.full_name}</span>
                       </div>
                     ) : (

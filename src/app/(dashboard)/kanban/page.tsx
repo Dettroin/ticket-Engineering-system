@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/Card';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
+import { Avatar } from '@/components/ui/Avatar';
 import { KANBAN_STAGES, TICKET_TYPE_COLORS, TICKET_TYPE_LABELS, PRIORITY_COLORS, PRIORITY_LABELS } from '@/types/tickets';
 import { TicketStatus } from '@/types/database';
 import { Columns, Search } from 'lucide-react';
@@ -45,11 +46,11 @@ export default function KanbanPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sf-text">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-navy-950 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-navy-950 flex items-center gap-2 font-sf-display">
             <Columns className="w-5 h-5 text-navy-800" /> Interactive Kanban Board
           </h1>
           <p className="text-xs text-slate-500 font-medium">Drag and drop tickets across 9 engineering workflow columns</p>
@@ -100,7 +101,7 @@ export default function KanbanPage() {
               <div className="p-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className={`w-2.5 h-2.5 rounded-full ${stage.id === 'blocked' ? 'bg-rose-500 animate-pulse' : stage.id === 'in_progress' ? 'bg-amber-500' : 'bg-navy-700'}`} />
-                  <h3 className="text-xs font-bold text-navy-950">{stage.name}</h3>
+                  <h3 className="text-xs font-bold text-navy-950 font-sf-display">{stage.name}</h3>
                 </div>
                 <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full border border-slate-200">
                   {stageTickets.length}
@@ -140,7 +141,7 @@ export default function KanbanPage() {
                         </span>
                         {ticket.assignee && (
                           <div className="flex items-center gap-1 font-medium">
-                            <img src={ticket.assignee.avatar_url} className="w-4 h-4 rounded-full object-cover" />
+                            <Avatar name={ticket.assignee.full_name} size="xs" />
                             <span className="truncate max-w-[80px] text-slate-700">{ticket.assignee.full_name.split(' ')[0]}</span>
                           </div>
                         )}

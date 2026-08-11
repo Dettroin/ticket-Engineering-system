@@ -1,40 +1,41 @@
 import React from 'react';
-import { cn, getInitials } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
-interface AvatarProps {
+export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
   name?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
 }
 
-export const Avatar: React.FC<AvatarProps> = ({ src, name = 'User', size = 'md', className }) => {
-  const sizeMap = {
-    xs: 'w-6 h-6 text-[10px]',
-    sm: 'w-8 h-8 text-xs',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-12 h-12 text-base',
-    xl: 'w-16 h-16 text-lg',
+export const Avatar: React.FC<AvatarProps> = ({
+  name = 'User',
+  size = 'md',
+  className,
+  ...props
+}) => {
+  const getInitials = (n: string) => {
+    const parts = n.trim().split(' ').filter(Boolean);
+    if (parts.length === 0) return 'U';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
   };
 
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={name}
-        className={cn('rounded-full object-cover border border-slate-700/60 shadow-sm shrink-0', sizeMap[size], className)}
-      />
-    );
-  }
+  const sizes = {
+    xs: 'w-5 h-5 text-[9px]',
+    sm: 'w-7 h-7 text-xs',
+    md: 'w-9 h-9 text-sm',
+    lg: 'w-11 h-11 text-base',
+    xl: 'w-14 h-14 text-lg',
+  };
 
   return (
     <div
       className={cn(
-        'rounded-full bg-gradient-to-tr from-dettroin-700 to-indigo-600 text-white font-semibold flex items-center justify-center border border-slate-700/60 shadow-sm shrink-0',
-        sizeMap[size],
+        'rounded-2xl bg-navy-950 text-white font-bold font-sf-display flex items-center justify-center border border-navy-900 shrink-0 shadow-apple-sm select-none',
+        sizes[size],
         className
       )}
-      title={name}
+      {...props}
     >
       {getInitials(name)}
     </div>
