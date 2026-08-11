@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Dialog } from '@/components/ui/Dialog';
-import { Zap, Calendar, Plus, CheckCircle2, Ticket as TicketIcon, Clock } from 'lucide-react';
+import { Zap, Calendar, Plus } from 'lucide-react';
 import { STATUS_COLORS, STATUS_LABELS } from '@/types/tickets';
 
 export default function SprintsPage() {
@@ -39,10 +39,10 @@ export default function SprintsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-teal-400" /> Sprint Management
+          <h1 className="text-xl font-bold text-navy-950 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-navy-800" /> Sprint Management
           </h1>
-          <p className="text-xs text-slate-400">Plan iterations, track story points, & drive engineering velocity</p>
+          <p className="text-xs text-slate-500 font-medium">Plan iterations, track story points, & drive engineering velocity</p>
         </div>
 
         {canManageSprintsPermission && (
@@ -62,51 +62,51 @@ export default function SprintsPage() {
           const progressPercent = totalPoints > 0 ? Math.round((completedPoints / totalPoints) * 100) : 0;
 
           return (
-            <Card key={sprint.id} className="space-y-4 border-slate-800 bg-slate-900/90">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <Card key={sprint.id} className="space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <div>
                   <div className="flex items-center gap-3">
-                    <h2 className="text-base font-bold text-slate-100">{sprint.name}</h2>
-                    <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium uppercase ${sprint.status === 'active' ? 'bg-teal-500/10 text-teal-400 border-teal-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                    <h2 className="text-base font-bold text-navy-950">{sprint.name}</h2>
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full border font-semibold uppercase ${sprint.status === 'active' ? 'bg-teal-50 text-teal-700 border-teal-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                       {sprint.status}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">Goal: {sprint.goal || 'No goal set'}</p>
+                  <p className="text-xs text-slate-500 font-medium mt-1">Goal: {sprint.goal || 'No goal set'}</p>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-slate-300">
+                <div className="flex items-center gap-4 text-xs text-slate-700 font-medium">
                   <div className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-slate-500" />
+                    <Calendar className="w-4 h-4 text-slate-400" />
                     <span>{sprint.start_date} → {sprint.end_date}</span>
                   </div>
-                  <div className="font-mono bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
-                    <span className="text-teal-400 font-bold">{completedPoints}</span> / {totalPoints} Story Points ({progressPercent}%)
+                  <div className="font-mono bg-slate-50 px-3 py-1 rounded-xl border border-slate-200 shadow-apple-sm">
+                    <span className="text-teal-700 font-bold">{completedPoints}</span> / {totalPoints} Story Points ({progressPercent}%)
                   </div>
                 </div>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                <div className="bg-gradient-to-r from-dettroin-500 to-teal-400 h-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+              <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+                <div className="bg-gradient-to-r from-navy-900 to-blue-600 h-full transition-all duration-300 rounded-full" style={{ width: `${progressPercent}%` }} />
               </div>
 
               {/* Sprint Tickets */}
               <div className="space-y-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Sprint Backlog ({sprintTickets.length} Tickets)</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Sprint Backlog ({sprintTickets.length} Tickets)</h3>
                 <div className="space-y-1.5">
                   {sprintTickets.map((ticket) => (
-                    <div key={ticket.id} className="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
+                    <div key={ticket.id} className="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between shadow-apple-sm">
                       <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs font-bold text-dettroin-400 bg-dettroin-950 px-2 py-0.5 rounded border border-dettroin-800">
+                        <span className="font-mono text-xs font-bold text-navy-950 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                           {ticket.ticket_number}
                         </span>
-                        <span className="text-xs text-slate-200 font-semibold">{ticket.title}</span>
+                        <span className="text-xs text-slate-900 font-bold">{ticket.title}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`text-[10px] px-2 py-0.5 rounded border ${STATUS_COLORS[ticket.status]}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${STATUS_COLORS[ticket.status]}`}>
                           {STATUS_LABELS[ticket.status]}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-mono text-slate-700 bg-white px-2.5 py-0.5 rounded-full border border-slate-200 font-bold">
                           {ticket.story_points} pts
                         </span>
                       </div>
@@ -129,7 +129,7 @@ export default function SprintsPage() {
             <Input label="End Date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-200">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel
             </Button>

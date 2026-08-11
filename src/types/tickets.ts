@@ -16,18 +16,18 @@ export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
 };
 
 export const TICKET_TYPE_COLORS: Record<TicketType, string> = {
-  bug: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
-  task: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  feature: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  improvement: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
-  question: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  api_issue: 'bg-violet-500/15 text-violet-400 border-violet-500/30',
-  ui_issue: 'bg-pink-500/15 text-pink-400 border-pink-500/30',
-  integration_issue: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
-  database_issue: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
-  deployment_issue: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30',
-  security_issue: 'bg-red-600/20 text-red-300 border-red-500/50 font-bold',
-  technical_debt: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+  bug: 'bg-rose-50 text-rose-700 border-rose-200',
+  task: 'bg-blue-50 text-blue-700 border-blue-200',
+  feature: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  improvement: 'bg-purple-50 text-purple-700 border-purple-200',
+  question: 'bg-amber-50 text-amber-700 border-amber-200',
+  api_issue: 'bg-navy-50 text-navy-900 border-navy-200 font-semibold',
+  ui_issue: 'bg-sky-50 text-sky-700 border-sky-200',
+  integration_issue: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  database_issue: 'bg-orange-50 text-orange-700 border-orange-200',
+  deployment_issue: 'bg-violet-50 text-violet-700 border-violet-200',
+  security_issue: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+  technical_debt: 'bg-slate-100 text-slate-700 border-slate-200',
 };
 
 export const STATUS_LABELS: Record<TicketStatus, string> = {
@@ -46,18 +46,18 @@ export const STATUS_LABELS: Record<TicketStatus, string> = {
 };
 
 export const STATUS_COLORS: Record<TicketStatus, string> = {
-  open: 'bg-slate-500/15 text-slate-300 border-slate-500/30',
-  triaged: 'bg-blue-500/15 text-blue-300 border-blue-500/30',
-  assigned: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
-  in_progress: 'bg-amber-500/15 text-amber-300 border-amber-500/30 animate-pulse-subtle',
-  blocked: 'bg-rose-500/20 text-rose-300 border-rose-500/50 font-semibold',
-  code_review: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
-  ready_for_testing: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30',
-  testing: 'bg-teal-500/15 text-teal-300 border-teal-500/30',
-  changes_requested: 'bg-orange-500/15 text-orange-300 border-orange-500/30',
-  resolved: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
-  closed: 'bg-gray-500/15 text-gray-400 border-gray-500/30',
-  reopened: 'bg-pink-500/15 text-pink-300 border-pink-500/30',
+  open: 'bg-slate-100 text-slate-700 border-slate-200',
+  triaged: 'bg-blue-50 text-blue-700 border-blue-200',
+  assigned: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  in_progress: 'bg-amber-50 text-amber-800 border-amber-200 font-medium',
+  blocked: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+  code_review: 'bg-purple-50 text-purple-700 border-purple-200',
+  ready_for_testing: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+  testing: 'bg-teal-50 text-teal-700 border-teal-200',
+  changes_requested: 'bg-orange-50 text-orange-800 border-orange-200',
+  resolved: 'bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold',
+  closed: 'bg-slate-200 text-slate-600 border-slate-300',
+  reopened: 'bg-pink-50 text-pink-700 border-pink-200',
 };
 
 export const PRIORITY_LABELS: Record<TicketPriority, string> = {
@@ -68,10 +68,10 @@ export const PRIORITY_LABELS: Record<TicketPriority, string> = {
 };
 
 export const PRIORITY_COLORS: Record<TicketPriority, string> = {
-  low: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-  medium: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  high: 'bg-amber-500/10 text-amber-400 border-amber-500/20 font-medium',
-  urgent: 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold animate-pulse-subtle',
+  low: 'bg-slate-100 text-slate-600 border-slate-200',
+  medium: 'bg-blue-50 text-blue-700 border-blue-200',
+  high: 'bg-amber-50 text-amber-800 border-amber-200 font-semibold',
+  urgent: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
 };
 
 export const SEVERITY_LABELS: Record<TicketSeverity, string> = {

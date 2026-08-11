@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select';
 import { useAuth } from '@/context/AuthContext';
 import { TicketPriority, TicketSeverity, TicketType } from '@/types/database';
 import { TICKET_TYPE_LABELS } from '@/types/tickets';
-import { Sparkles, Code, FileText, Bug, AlertTriangle } from 'lucide-react';
+import { Bug, Code, AlertTriangle } from 'lucide-react';
 
 interface CreateTicketModalProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ interface CreateTicketModalProps {
 }
 
 export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, onClose }) => {
-  const { projects, sprints, users, user, createTicket } = useAuth();
+  const { projects, sprints, users, createTicket } = useAuth();
 
   const [projectId, setProjectId] = useState(projects[0]?.id || '');
   const [sprintId, setSprintId] = useState(sprints[0]?.id || '');
@@ -25,7 +25,7 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, on
   const [type, setType] = useState<TicketType>('api_issue');
   const [priority, setPriority] = useState<TicketPriority>('high');
   const [severity, setSeverity] = useState<TicketSeverity>('major');
-  const [assigneeId, setAssigneeId] = useState(users[3]?.id || ''); // default to Backend Dev Rahul
+  const [assigneeId, setAssigneeId] = useState(users[3]?.id || '');
   const [moduleName, setModuleName] = useState('Student Dashboard');
   const [environment, setEnvironment] = useState('Staging Environment');
   const [browserDevice, setBrowserDevice] = useState('Chrome v127 / macOS');
@@ -89,15 +89,15 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, on
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title="Create Technical Ticket" maxWidth="4xl">
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Ticket Type Banner */}
-        <div className="bg-gradient-to-r from-dettroin-950 to-slate-900 border border-dettroin-500/30 rounded-xl p-4 flex items-center justify-between">
+        {/* Banner */}
+        <div className="bg-navy-950 text-white rounded-2xl p-4 flex items-center justify-between shadow-apple-md">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-dettroin-500/20 text-dettroin-400 rounded-lg">
+            <div className="p-2.5 bg-white/10 text-white rounded-xl">
               <Bug className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-100">Dettroin Engineering Ticket System</p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs font-bold">Dettroin Engineering Ticket</p>
+              <p className="text-[11px] text-slate-300">
                 Log API, UI, integration, or database bugs to eliminate WhatsApp/message communication gaps.
               </p>
             </div>
@@ -137,40 +137,40 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, on
         {/* Frontend ↔ Backend Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <Code className="w-3.5 h-3.5 text-emerald-400" /> Expected API / Response JSON
+            <label className="block text-xs font-semibold text-navy-900 mb-1.5 flex items-center gap-1.5">
+              <Code className="w-3.5 h-3.5 text-emerald-600" /> Expected API / Response JSON
             </label>
             <textarea
               rows={3}
               value={expectedResult}
               onChange={(e) => setExpectedResult(e.target.value)}
               placeholder={'{\n  "student_id": 101,\n  "attendance": 95\n}'}
-              className="w-full bg-slate-950/80 border border-slate-800 rounded-lg p-3 text-xs text-emerald-300 font-mono focus:outline-none focus:border-dettroin-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-emerald-800 font-mono focus:bg-white focus:outline-none focus:border-navy-600 shadow-apple-sm"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-400" /> Actual Received Response / Error
+            <label className="block text-xs font-semibold text-navy-900 mb-1.5 flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Actual Received Response / Error
             </label>
             <textarea
               rows={3}
               value={actualResult}
               onChange={(e) => setActualResult(e.target.value)}
               placeholder={'{\n  "student": 101,\n  "attendance_percentage": null\n}'}
-              className="w-full bg-slate-950/80 border border-slate-800 rounded-lg p-3 text-xs text-rose-300 font-mono focus:outline-none focus:border-dettroin-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-rose-800 font-mono focus:bg-white focus:outline-none focus:border-navy-600 shadow-apple-sm"
             />
           </div>
         </div>
 
         {/* Steps to reproduce */}
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1.5">Steps to Reproduce</label>
+          <label className="block text-xs font-semibold text-navy-900 mb-1.5">Steps to Reproduce</label>
           <textarea
             rows={3}
             value={stepsToReproduce}
             onChange={(e) => setStepsToReproduce(e.target.value)}
             placeholder="1. Open /dashboard/student/101&#10;2. Check network tab payload..."
-            className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-xs text-slate-200 focus:outline-none focus:border-dettroin-500"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-900 focus:bg-white focus:outline-none focus:border-navy-600 shadow-apple-sm"
           />
         </div>
 
@@ -182,7 +182,7 @@ export const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ isOpen, on
         </div>
 
         {/* Submit Actions */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>

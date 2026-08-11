@@ -16,21 +16,21 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg active:scale-[0.98]';
+  const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl active:scale-[0.98] shadow-apple-sm';
 
   const variants = {
-    primary: 'bg-dettroin-600 hover:bg-dettroin-500 text-white shadow-lg shadow-dettroin-600/25 focus:ring-dettroin-500',
-    secondary: 'bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-700/60 focus:ring-slate-600',
-    outline: 'border border-slate-700 bg-transparent hover:bg-slate-800/60 text-slate-200 focus:ring-slate-600',
-    danger: 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/20 focus:ring-rose-500',
-    ghost: 'bg-transparent hover:bg-slate-800/50 text-slate-300 hover:text-white focus:ring-slate-700',
-    glass: 'bg-slate-800/40 hover:bg-slate-800/80 text-slate-100 backdrop-blur-md border border-slate-700/50 shadow-sm',
+    primary: 'bg-navy-950 hover:bg-navy-900 text-white shadow-navy-glow border border-navy-900',
+    secondary: 'bg-slate-100 hover:bg-slate-200 text-navy-950 border border-slate-200',
+    outline: 'border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-apple-sm',
+    danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm',
+    ghost: 'bg-transparent hover:bg-slate-100/80 text-slate-700 hover:text-navy-950 shadow-none',
+    glass: 'bg-white/80 hover:bg-white text-navy-950 backdrop-blur-xl border border-slate-200/80 shadow-apple-sm',
   };
 
   const sizes = {
-    sm: 'text-xs px-3 py-1.5 gap-1.5',
-    md: 'text-sm px-4 py-2 gap-2',
-    lg: 'text-base px-5 py-2.5 gap-2.5',
+    sm: 'text-xs px-3.5 py-1.5 gap-1.5 rounded-lg',
+    md: 'text-xs sm:text-sm px-4 py-2 gap-2 rounded-xl',
+    lg: 'text-sm sm:text-base px-5 py-2.5 gap-2.5 rounded-2xl',
   };
 
   return (

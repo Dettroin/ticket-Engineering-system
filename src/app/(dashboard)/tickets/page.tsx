@@ -7,11 +7,11 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { STATUS_COLORS, STATUS_LABELS, TICKET_TYPE_COLORS, TICKET_TYPE_LABELS, PRIORITY_COLORS, PRIORITY_LABELS } from '@/types/tickets';
-import { Ticket as TicketIcon, Plus, Search, Filter, ArrowUpRight } from 'lucide-react';
+import { Ticket as TicketIcon, Search, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function TicketsPage() {
-  const { tickets, users } = useAuth();
+  const { tickets } = useAuth();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -33,15 +33,15 @@ export default function TicketsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-            <TicketIcon className="w-5 h-5 text-dettroin-400" /> Engineering Ticket Central
+          <h1 className="text-xl font-bold text-navy-950 flex items-center gap-2">
+            <TicketIcon className="w-5 h-5 text-navy-800" /> Engineering Ticket Central
           </h1>
-          <p className="text-xs text-slate-400">All technical bugs, tasks, API issues, and feature requests</p>
+          <p className="text-xs text-slate-500 font-medium">All technical bugs, tasks, API issues, and feature requests</p>
         </div>
       </div>
 
       {/* Filter Controls */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row gap-3 items-center justify-between shadow-lg">
+      <Card className="flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="w-full md:w-72">
           <Input
             placeholder="Search tickets, DET-143, title..."
@@ -95,13 +95,13 @@ export default function TicketsPage() {
             className="w-36"
           />
         </div>
-      </div>
+      </Card>
 
       {/* Ticket List Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <Card className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-800">
+          <table className="w-full text-left text-xs text-slate-800">
+            <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
               <tr>
                 <th className="px-4 py-3.5">Ticket ID</th>
                 <th className="px-4 py-3.5">Title & Module</th>
@@ -113,32 +113,32 @@ export default function TicketsPage() {
                 <th className="px-4 py-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {filteredTickets.map((ticket) => (
-                <tr key={ticket.id} className="hover:bg-slate-800/40 transition-colors group">
-                  <td className="px-4 py-3.5 font-mono font-bold text-dettroin-400">
-                    <Link href={`/tickets/${ticket.ticket_number}`} className="bg-dettroin-950 px-2 py-1 rounded border border-dettroin-800 hover:border-dettroin-500">
+                <tr key={ticket.id} className="hover:bg-slate-50 transition-colors group">
+                  <td className="px-4 py-3.5 font-mono font-bold text-navy-950">
+                    <Link href={`/tickets/${ticket.ticket_number}`} className="bg-blue-50 text-blue-800 px-2.5 py-1 rounded-full border border-blue-200 hover:bg-blue-100">
                       {ticket.ticket_number}
                     </Link>
                   </td>
                   <td className="px-4 py-3.5">
-                    <Link href={`/tickets/${ticket.ticket_number}`} className="font-semibold text-slate-100 hover:text-dettroin-300 transition-colors block">
+                    <Link href={`/tickets/${ticket.ticket_number}`} className="font-bold text-slate-900 hover:text-navy-700 transition-colors block">
                       {ticket.title}
                     </Link>
-                    <span className="text-[10px] text-slate-400">{ticket.module || 'General'}</span>
+                    <span className="text-[10px] text-slate-500 font-medium">{ticket.module || 'General'}</span>
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className={`px-2.5 py-0.5 rounded border text-[10px] font-medium ${TICKET_TYPE_COLORS[ticket.type]}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full border text-[10px] ${TICKET_TYPE_COLORS[ticket.type]}`}>
                       {TICKET_TYPE_LABELS[ticket.type]}
                     </span>
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className={`px-2.5 py-0.5 rounded border text-[10px] font-medium ${STATUS_COLORS[ticket.status]}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full border text-[10px] ${STATUS_COLORS[ticket.status]}`}>
                       {STATUS_LABELS[ticket.status]}
                     </span>
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className={`px-2.5 py-0.5 rounded border text-[10px] font-medium ${PRIORITY_COLORS[ticket.priority]}`}>
+                    <span className={`px-2.5 py-0.5 rounded-full border text-[10px] ${PRIORITY_COLORS[ticket.priority]}`}>
                       {PRIORITY_LABELS[ticket.priority]}
                     </span>
                   </td>
@@ -146,25 +146,25 @@ export default function TicketsPage() {
                     {ticket.assignee ? (
                       <div className="flex items-center gap-1.5">
                         <img src={ticket.assignee.avatar_url} className="w-5 h-5 rounded-full object-cover" />
-                        <span className="text-slate-200">{ticket.assignee.full_name}</span>
+                        <span className="text-slate-800 font-medium">{ticket.assignee.full_name}</span>
                       </div>
                     ) : (
-                      <span className="text-slate-500 italic">Unassigned</span>
+                      <span className="text-slate-400 italic">Unassigned</span>
                     )}
                   </td>
                   <td className="px-4 py-3.5">
                     {ticket.reporter ? (
                       <div className="flex items-center gap-1.5">
                         <img src={ticket.reporter.avatar_url} className="w-5 h-5 rounded-full object-cover" />
-                        <span className="text-slate-400">{ticket.reporter.full_name}</span>
+                        <span className="text-slate-600">{ticket.reporter.full_name}</span>
                       </div>
                     ) : (
-                      <span className="text-slate-500">System</span>
+                      <span className="text-slate-400">System</span>
                     )}
                   </td>
                   <td className="px-4 py-3.5 text-right">
                     <Link href={`/tickets/${ticket.ticket_number}`}>
-                      <Button size="sm" variant="ghost" className="text-dettroin-400 hover:text-white">
+                      <Button size="sm" variant="ghost">
                         Open <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
                       </Button>
                     </Link>
@@ -174,7 +174,7 @@ export default function TicketsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

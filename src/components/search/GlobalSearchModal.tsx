@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Ticket as TicketIcon, FolderKanban, User as UserIcon, X, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Dialog } from '@/components/ui/Dialog';
@@ -36,17 +36,17 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
       <div className="space-y-4">
         {/* Search Input Box */}
         <div className="relative flex items-center">
-          <Search className="w-5 h-5 absolute left-3 text-dettroin-400" />
+          <Search className="w-5 h-5 absolute left-3.5 text-navy-600" />
           <input
             autoFocus
             type="text"
-            placeholder="Type ticket ID (e.g. DET-143), title, project, or developer name..."
+            placeholder="Search DET-143, title, project, or team member..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-slate-950/80 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-dettroin-500 focus:ring-1 focus:ring-dettroin-500 shadow-inner"
+            className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-navy-600 focus:ring-2 focus:ring-navy-600/20 shadow-apple-sm transition-all"
           />
           {query && (
-            <button onClick={() => setQuery('')} className="absolute right-3 text-slate-400 hover:text-slate-200">
+            <button onClick={() => setQuery('')} className="absolute right-3.5 text-slate-400 hover:text-slate-700">
               <X className="w-4 h-4" />
             </button>
           )}
@@ -57,8 +57,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {/* Tickets Results */}
           {filteredTickets.length > 0 && (
             <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-                <TicketIcon className="w-3.5 h-3.5 text-dettroin-400" /> Tickets ({filteredTickets.length})
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
+                <TicketIcon className="w-3.5 h-3.5 text-navy-800" /> Tickets ({filteredTickets.length})
               </div>
               <div className="space-y-1.5">
                 {filteredTickets.map((t) => (
@@ -66,21 +66,21 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
                     key={t.id}
                     href={`/tickets/${t.ticket_number}`}
                     onClick={onClose}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 hover:bg-slate-800/60 border border-slate-800/80 transition-colors group"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-white hover:shadow-apple-sm border border-slate-200/80 transition-all group"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs font-bold text-dettroin-400 bg-dettroin-950 px-2 py-0.5 rounded border border-dettroin-800">
+                      <span className="font-mono text-xs font-bold text-navy-950 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
                         {t.ticket_number}
                       </span>
-                      <span className="text-xs text-slate-200 group-hover:text-white font-medium line-clamp-1">
+                      <span className="text-xs text-slate-800 group-hover:text-navy-950 font-semibold line-clamp-1">
                         {t.title}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded border font-medium ${STATUS_COLORS[t.status]}`}>
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full border font-medium ${STATUS_COLORS[t.status]}`}>
                         {STATUS_LABELS[t.status]}
                       </span>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-navy-900 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </Link>
                 ))}
@@ -91,24 +91,24 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {/* Projects Results */}
           {filteredProjects.length > 0 && (
             <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-                <FolderKanban className="w-3.5 h-3.5 text-indigo-400" /> Projects ({filteredProjects.length})
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
+                <FolderKanban className="w-3.5 h-3.5 text-indigo-600" /> Projects ({filteredProjects.length})
               </div>
               <div className="space-y-1.5">
                 {filteredProjects.map((p) => (
                   <Link
                     key={p.id}
-                    href={`/projects/${p.id}`}
+                    href={`/projects`}
                     onClick={onClose}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-950/50 hover:bg-slate-800/60 border border-slate-800/80 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-white hover:shadow-apple-sm border border-slate-200/80 transition-all"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-xs font-bold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">
+                      <span className="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
                         {p.key}
                       </span>
                       <div>
-                        <p className="text-xs font-semibold text-slate-200">{p.name}</p>
-                        <p className="text-[10px] text-slate-400">{p.client_name}</p>
+                        <p className="text-xs font-bold text-navy-950">{p.name}</p>
+                        <p className="text-[10px] text-slate-500">{p.client_name}</p>
                       </div>
                     </div>
                   </Link>
@@ -120,23 +120,23 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ isOpen, on
           {/* Users Results */}
           {filteredUsers.length > 0 && (
             <div>
-              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-                <UserIcon className="w-3.5 h-3.5 text-teal-400" /> Team Members ({filteredUsers.length})
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
+                <UserIcon className="w-3.5 h-3.5 text-teal-600" /> Team Members ({filteredUsers.length})
               </div>
               <div className="space-y-1.5">
                 {filteredUsers.map((u) => (
                   <div
                     key={u.id}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/50 border border-slate-800/80"
+                    className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200/80"
                   >
                     <div className="flex items-center gap-2.5">
                       <img src={u.avatar_url} alt={u.full_name} className="w-6 h-6 rounded-full object-cover" />
                       <div>
-                        <p className="text-xs font-medium text-slate-200">{u.full_name}</p>
-                        <p className="text-[10px] text-slate-400">{u.email}</p>
+                        <p className="text-xs font-semibold text-navy-950">{u.full_name}</p>
+                        <p className="text-[10px] text-slate-500">{u.email}</p>
                       </div>
                     </div>
-                    <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 font-mono">
+                    <span className="text-[10px] bg-white text-slate-700 px-2 py-0.5 rounded-full border border-slate-200 font-mono">
                       {u.role}
                     </span>
                   </div>

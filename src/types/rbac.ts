@@ -34,15 +34,15 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 export const ROLE_BADGE_COLORS: Record<UserRole, string> = {
-  super_admin: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
-  admin: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30',
-  project_manager: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-  team_lead: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
-  developer: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-  frontend_developer: 'bg-teal-500/10 text-teal-400 border-teal-500/30',
-  backend_developer: 'bg-sky-500/10 text-sky-400 border-sky-500/30',
-  qa_tester: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-  client_user: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
+  super_admin: 'bg-purple-50 text-purple-700 border-purple-200',
+  admin: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  project_manager: 'bg-blue-50 text-blue-700 border-blue-200',
+  team_lead: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+  developer: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  frontend_developer: 'bg-sky-50 text-sky-700 border-sky-200',
+  backend_developer: 'bg-navy-50 text-navy-800 border-navy-200 font-semibold',
+  qa_tester: 'bg-amber-50 text-amber-700 border-amber-200',
+  client_user: 'bg-slate-100 text-slate-700 border-slate-200',
 };
 
 export function canCreateProject(role: UserRole): boolean {
