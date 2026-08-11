@@ -50,6 +50,7 @@ export interface User {
   email: string;
   username: string;
   password?: string;
+  is_active?: boolean;
   full_name: string;
   avatar_url?: string;
   role: UserRole;

@@ -21,6 +21,8 @@ interface AuthContextType {
   logout: () => void;
   switchUser: (userId: string) => void;
   createAdminUser: (userData: { fullName: string; email: string; username: string; password?: string; role: UserRole; jobTitle?: string }) => User;
+  updateUserProfile: (userId: string, updates: Partial<User>) => void;
+  toggleUserActiveStatus: (userId: string) => boolean;
   resetUserPassword: (userId: string, newPassword?: string) => boolean;
   createTicket: (newTicket: Partial<Ticket>) => Ticket;
   updateTicketStatus: (ticketId: string, status: Ticket['status']) => void;
@@ -60,7 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const savedAuth = localStorage.getItem('dettroin_authenticated');
     if (savedUserId && savedAuth === 'true') {
       const found = users.find((u) => u.id === savedUserId);
-      if (found) {
+      if (found && found.is_active !== false) {
         setUser(found);
         setIsAuthenticated(true);
       } else {
@@ -86,6 +88,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, message: 'Invalid username or email. Please check your credentials.' };
     }
 
+    // Check Deactivated status
+    if (targetUser.is_active === false) {
+      return { success: false, message: 'Your account has been deactivated by an Administrator. Contact your Admin to reactivate.' };
+    }
+
     // Verify password set by Admin
     if (passwordInput && targetUser.password) {
       if (passwordInput !== targetUser.password && passwordInput !== 'dettroin2026') {
@@ -109,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const switchUser = (userId: string) => {
     const target = users.find((u) => u.id === userId);
-    if (target) {
+    if (target && target.is_active !== false) {
       setUser(target);
       setIsAuthenticated(true);
       localStorage.setItem('dettroin_active_user', target.id);
@@ -124,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: userData.email,
       username: userData.username,
       password: userData.password || 'AdminSetPass@2026',
+      is_active: true,
       full_name: userData.fullName,
       role: userData.role,
       job_title: userData.jobTitle || 'Engineer',
@@ -133,6 +141,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setUsers((prev) => [...prev, newUser]);
     return newUser;
+  };
+
+  const updateUserProfile = (userId: string, updates: Partial<User>) => {
+    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, ...updates } : u)));
+    if (user?.id === userId) {
+      setUser((prev) => (prev ? { ...prev, ...updates } : null));
+    }
+  };
+
+  const toggleUserActiveStatus = (userId: string): boolean => {
+    let newStatus = true;
+    setUsers((prev) =>
+      prev.map((u) => {
+        if (u.id === userId) {
+          newStatus = u.is_active === false ? true : false;
+          return { ...u, is_active: newStatus };
+        }
+        return u;
+      })
+    );
+    return newStatus;
   };
 
   const resetUserPassword = (userId: string, newPassword?: string): boolean => {
@@ -303,6 +332,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         switchUser,
         createAdminUser,
+        updateUserProfile,
+        toggleUserActiveStatus,
         resetUserPassword,
         createTicket,
         updateTicketStatus,
