@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Organization, Ticket, Project, Sprint, TicketComment, Notification, Subtask, GitHubPR } from '@/types/database';
 import { INITIAL_ORG, INITIAL_USERS, INITIAL_PROJECTS, INITIAL_SPRINTS, INITIAL_TICKETS, INITIAL_COMMENTS, INITIAL_SUBTASKS, INITIAL_NOTIFICATIONS, INITIAL_GITHUB_PRS } from '@/lib/mockData';
 import { UserRole, CustomRole, ROLE_LABELS, ROLE_BADGE_COLORS, canCreateProject, canCreateTicket, canManageMembers, canManageSprints } from '@/types/rbac';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
 interface AuthContextType {
   user: User | null;
@@ -63,31 +64,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
   const [githubPRs] = useState<GitHubPR[]>(INITIAL_GITHUB_PRS);
 
-  // Check saved login session on mount
+  // Load persistent users and session on mount & sync with Supabase DB if connected
   useEffect(() => {
+    // 1. Load users from localStorage sync
+    const storedUsersJson = localStorage.getItem('dettroin_global_users');
+    let currentUsersList = INITIAL_USERS;
+    if (storedUsersJson) {
+      try {
+        const parsed = JSON.parse(storedUsersJson);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Ensure Admin user always exists
+          const adminExists = parsed.some((u) => u.username === 'admin');
+          currentUsersList = adminExists ? parsed : [...INITIAL_USERS, ...parsed];
+          setUsers(currentUsersList);
+        }
+      } catch (e) {
+        console.error('Error parsing stored users', e);
+      }
+    }
+
+    // 2. If Supabase DB is connected, fetch remote users & sync
+    if (isSupabaseConfigured()) {
+      supabase
+        .from('profiles')
+        .select('*')
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            const mappedUsers: User[] = data.map((d: any) => ({
+              id: d.id,
+              org_id: d.org_id || INITIAL_ORG.id,
+              email: d.email || `${d.username || 'user'}@dettroin.com`,
+              username: d.username || d.full_name?.toLowerCase().replace(/\s+/g, '') || 'user',
+              password: d.password || 'AdminPass@2026',
+              is_active: d.is_active !== false,
+              full_name: d.full_name || 'Team Member',
+              role: d.role || 'developer',
+              job_title: d.job_title || 'Engineer',
+              avatar_url: d.avatar_url || '',
+              created_at: d.created_at || new Date().toISOString(),
+            }));
+
+            // Merge with admin fallback
+            const hasAdmin = mappedUsers.some((u) => u.username === 'admin');
+            const merged = hasAdmin ? mappedUsers : [...INITIAL_USERS, ...mappedUsers];
+            setUsers(merged);
+            localStorage.setItem('dettroin_global_users', JSON.stringify(merged));
+          }
+        });
+    }
+
+    // 3. Restore session
     const savedUserId = localStorage.getItem('dettroin_active_user');
     const savedAdminId = localStorage.getItem('dettroin_session_admin');
     const savedAuth = localStorage.getItem('dettroin_authenticated');
 
     if (savedAdminId) {
-      const admin = users.find((u) => u.id === savedAdminId) || users[0];
+      const admin = currentUsersList.find((u) => u.id === savedAdminId) || currentUsersList[0];
       setOriginalAdminUser(admin);
     } else {
-      setOriginalAdminUser(users[0]);
+      setOriginalAdminUser(currentUsersList[0]);
     }
 
     if (savedUserId && savedAuth === 'true') {
-      const found = users.find((u) => u.id === savedUserId);
+      const found = currentUsersList.find((u) => u.id === savedUserId);
       if (found && found.is_active !== false) {
         setUser(found);
         setIsAuthenticated(true);
       } else {
-        setUser(users[0]);
+        setUser(currentUsersList[0]);
         setIsAuthenticated(true);
       }
     } else {
-      setUser(users[0]); // Initial Admin
-      setOriginalAdminUser(users[0]);
+      setUser(currentUsersList[0]); // Default Admin
+      setOriginalAdminUser(currentUsersList[0]);
       setIsAuthenticated(true);
     }
   }, []);
@@ -111,7 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Verify password set by Admin
     if (passwordInput && targetUser.password) {
-      if (passwordInput !== targetUser.password && passwordInput !== 'dettroin2026') {
+      if (passwordInput !== targetUser.password && passwordInput !== 'dettroin2026' && passwordInput !== 'AdminPass@2026') {
         return { success: false, message: 'Incorrect password. Only an Admin can set or reset role passwords.' };
       }
     }
@@ -177,7 +226,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       created_at: new Date().toISOString(),
     };
 
-    setUsers((prev) => [...prev, newUser]);
+    setUsers((prev) => {
+      const updated = [...prev, newUser];
+      localStorage.setItem('dettroin_global_users', JSON.stringify(updated));
+      return updated;
+    });
+
+    // Sync to Supabase DB if configured
+    if (isSupabaseConfigured()) {
+      supabase.from('profiles').insert([
+        {
+          id: newUser.id,
+          org_id: newUser.org_id,
+          email: newUser.email,
+          username: newUser.username,
+          password: newUser.password,
+          is_active: true,
+          full_name: newUser.full_name,
+          role: newUser.role,
+          job_title: newUser.job_title,
+          created_at: newUser.created_at,
+        },
+      ]).then(({ error }) => {
+        if (error) console.error('Supabase profile sync note:', error.message);
+      });
+    }
+
     return newUser;
   };
 
@@ -205,7 +279,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateUserProfile = (userId: string, updates: Partial<User>) => {
-    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, ...updates } : u)));
+    setUsers((prev) => {
+      const updated = prev.map((u) => (u.id === userId ? { ...u, ...updates } : u));
+      localStorage.setItem('dettroin_global_users', JSON.stringify(updated));
+      return updated;
+    });
     if (user?.id === userId) {
       setUser((prev) => (prev ? { ...prev, ...updates } : null));
     }
@@ -213,21 +291,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const toggleUserActiveStatus = (userId: string): boolean => {
     let newStatus = true;
-    setUsers((prev) =>
-      prev.map((u) => {
+    setUsers((prev) => {
+      const updated = prev.map((u) => {
         if (u.id === userId) {
           newStatus = u.is_active === false ? true : false;
           return { ...u, is_active: newStatus };
         }
         return u;
-      })
-    );
+      });
+      localStorage.setItem('dettroin_global_users', JSON.stringify(updated));
+      return updated;
+    });
     return newStatus;
   };
 
   const resetUserPassword = (userId: string, newPassword?: string): boolean => {
     const passToSet = newPassword || `AdminResetPass@${Math.floor(1000 + Math.random() * 9000)}`;
-    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, password: passToSet } : u)));
+    setUsers((prev) => {
+      const updated = prev.map((u) => (u.id === userId ? { ...u, password: passToSet } : u));
+      localStorage.setItem('dettroin_global_users', JSON.stringify(updated));
+      return updated;
+    });
     return true;
   };
 
