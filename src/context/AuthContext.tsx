@@ -212,7 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newTicket: Ticket = {
       id: `t-${Date.now()}`,
       ticket_number: ticketNumber,
-      project_id: newTicketData.project_id || projects[0].id,
+      project_id: newTicketData.project_id || projects[0]?.id || 'p-main',
       sprint_id: newTicketData.sprint_id || sprints[0]?.id,
       title: newTicketData.title || 'Untitled Ticket',
       description: newTicketData.description || '',
