@@ -7,7 +7,21 @@ export type UserRole =
   | 'frontend_developer'
   | 'backend_developer'
   | 'qa_tester'
-  | 'client_user';
+  | 'client_user'
+  | string;
+
+export interface CustomRole {
+  id: string;
+  key: string;
+  label: string;
+  description: string;
+  badge_color: string;
+  can_create_project?: boolean;
+  can_create_ticket?: boolean;
+  can_manage_sprints?: boolean;
+  can_manage_members?: boolean;
+  created_at: string;
+}
 
 export interface UserProfile {
   id: string;
@@ -21,7 +35,7 @@ export interface UserProfile {
   created_at: string;
 }
 
-export const ROLE_LABELS: Record<UserRole, string> = {
+export const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
   admin: 'Admin',
   project_manager: 'Project Manager',
@@ -33,7 +47,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   client_user: 'Client / User',
 };
 
-export const ROLE_BADGE_COLORS: Record<UserRole, string> = {
+export const ROLE_BADGE_COLORS: Record<string, string> = {
   super_admin: 'bg-purple-50 text-purple-700 border-purple-200',
   admin: 'bg-indigo-50 text-indigo-700 border-indigo-200',
   project_manager: 'bg-blue-50 text-blue-700 border-blue-200',

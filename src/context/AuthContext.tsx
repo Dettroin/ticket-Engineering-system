@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Organization, Ticket, Project, Sprint, TicketComment, Notification, Subtask, GitHubPR } from '@/types/database';
-import { INITIAL_ORG, INITIAL_USERS, INITIAL_PROJECTS, INITIAL_SPRINTS, INITIAL_TICKETS, INITIAL_COMMENTS, INITIAL_NOTIFICATIONS, INITIAL_SUBTASKS, INITIAL_GITHUB_PRS } from '@/lib/mockData';
-import { UserRole, canCreateProject, canCreateTicket, canManageMembers, canManageSprints } from '@/types/rbac';
+import { INITIAL_ORG, INITIAL_USERS, INITIAL_PROJECTS, INITIAL_SPRINTS, INITIAL_TICKETS, INITIAL_COMMENTS, INITIAL_SUBTASKS, INITIAL_GITHUB_PRS } from '@/lib/mockData';
+import { UserRole, CustomRole, ROLE_LABELS, ROLE_BADGE_COLORS, canCreateProject, canCreateTicket, canManageMembers, canManageSprints } from '@/types/rbac';
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +19,7 @@ interface AuthContextType {
   subtasks: Subtask[];
   notifications: Notification[];
   githubPRs: GitHubPR[];
+  customRoles: CustomRole[];
   login: (usernameOrEmail: string, passwordInput?: string) => { success: boolean; message?: string };
   logout: () => void;
   switchUser: (userId: string) => void;
@@ -27,6 +28,7 @@ interface AuthContextType {
   updateUserProfile: (userId: string, updates: Partial<User>) => void;
   toggleUserActiveStatus: (userId: string) => boolean;
   resetUserPassword: (userId: string, newPassword?: string) => boolean;
+  createCustomRole: (roleData: { key: string; label: string; description: string; canCreateProject?: boolean; canCreateTicket?: boolean; canManageSprints?: boolean; canManageMembers?: boolean }) => CustomRole;
   createTicket: (newTicket: Partial<Ticket>) => Ticket;
   updateTicketStatus: (ticketId: string, status: Ticket['status']) => void;
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => void;
@@ -47,6 +49,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
   const [organization] = useState<Organization>(INITIAL_ORG);
+  const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
   
   const [user, setUser] = useState<User | null>(null);
   const [originalAdminUser, setOriginalAdminUser] = useState<User | null>(null);
@@ -83,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(true);
       }
     } else {
-      setUser(users[0]); // Alex Mercer (Admin)
+      setUser(users[0]); // Initial Admin
       setOriginalAdminUser(users[0]);
       setIsAuthenticated(true);
     }
@@ -138,7 +141,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const switchUser = (userId: string) => {
     const target = users.find((u) => u.id === userId);
     if (target && target.is_active !== false) {
-      // If current user is Admin, track original admin session before switching
       if (user?.role === 'admin' || user?.role === 'super_admin') {
         setOriginalAdminUser(user);
         localStorage.setItem('dettroin_session_admin', user.id);
@@ -171,12 +173,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       full_name: userData.fullName,
       role: userData.role,
       job_title: userData.jobTitle || 'Engineer',
-      avatar_url: `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 1000)}?w=150&auto=format&fit=crop&q=80`,
+      avatar_url: '',
       created_at: new Date().toISOString(),
     };
 
     setUsers((prev) => [...prev, newUser]);
     return newUser;
+  };
+
+  const createCustomRole = (roleData: { key: string; label: string; description: string; canCreateProject?: boolean; canCreateTicket?: boolean; canManageSprints?: boolean; canManageMembers?: boolean }): CustomRole => {
+    const roleKey = roleData.key.toLowerCase().replace(/\s+/g, '_');
+    const newCustomRole: CustomRole = {
+      id: `cr-${Date.now()}`,
+      key: roleKey,
+      label: roleData.label,
+      description: roleData.description,
+      badge_color: 'bg-[#0b1d3a] text-white border-slate-700',
+      can_create_project: roleData.canCreateProject ?? true,
+      can_create_ticket: roleData.canCreateTicket ?? true,
+      can_manage_sprints: roleData.canManageSprints ?? true,
+      can_manage_members: roleData.canManageMembers ?? false,
+      created_at: new Date().toISOString(),
+    };
+
+    // Register label & badge color dynamically
+    ROLE_LABELS[roleKey] = roleData.label;
+    ROLE_BADGE_COLORS[roleKey] = 'bg-navy-950 text-white border-navy-900';
+
+    setCustomRoles((prev) => [...prev, newCustomRole]);
+    return newCustomRole;
   };
 
   const updateUserProfile = (userId: string, updates: Partial<User>) => {
@@ -325,7 +350,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const createSprint = (newSprintData: Partial<Sprint>): Sprint => {
     const newSprint: Sprint = {
       id: `s-${Date.now()}`,
-      project_id: newSprintData.project_id || projects[0].id,
+      project_id: newSprintData.project_id || projects[0]?.id || 'p-main',
       name: newSprintData.name || 'New Sprint',
       goal: newSprintData.goal || '',
       status: newSprintData.status || 'planning',
@@ -371,6 +396,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         subtasks,
         notifications,
         githubPRs,
+        customRoles,
         login,
         logout,
         switchUser,
@@ -379,6 +405,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUserProfile,
         toggleUserActiveStatus,
         resetUserPassword,
+        createCustomRole,
         createTicket,
         updateTicketStatus,
         updateTicket,
