@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   ChevronDown,
   LogOut,
+  UserCheck,
 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -41,7 +42,7 @@ export const Sidebar: React.FC = () => {
     { href: '/ai-assistant', label: 'Gemini AI Assistant', icon: Bot },
     ...(isAdmin ? [{ href: '/teams', label: 'Team & Role Control', icon: Users }] : []),
     { href: '/notifications', label: 'Notifications', icon: Bell },
-    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/settings', label: 'Settings & Profile', icon: Settings },
   ];
 
   const blockedCount = tickets.filter((t) => t.status === 'blocked').length;
@@ -55,8 +56,8 @@ export const Sidebar: React.FC = () => {
             D
           </div>
           <div>
-            <h1 className="font-bold text-sm text-navy-950 tracking-tight">Dettroin</h1>
-            <p className="text-[11px] text-slate-500 font-medium">Engineering System</p>
+            <h1 className="font-bold text-sm text-navy-950 tracking-tight font-sf-display">Dettroin</h1>
+            <p className="text-[11px] text-slate-500 font-medium font-sf-text">Engineering System</p>
           </div>
         </div>
         <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono border border-slate-200">
@@ -64,17 +65,17 @@ export const Sidebar: React.FC = () => {
         </span>
       </div>
 
-      {/* Role Swapper Widget — RESTRICTED TO ADMIN ONLY */}
+      {/* Role Swapper Widget & Return to Admin Profile — RESTRICTED TO ADMIN ONLY */}
       {isAdmin ? (
-        <div className="px-3 py-3 border-b border-slate-100 bg-slate-50/70">
-          <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-500 mb-1.5 flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-navy-700" /> Admin Persona Switcher
+        <div className="px-3 py-3 border-b border-slate-100 bg-slate-50/70 space-y-2">
+          <label className="block text-[10px] uppercase font-bold tracking-wider text-slate-500 flex items-center gap-1 font-sf-text">
+            <ShieldCheck className="w-3.5 h-3.5 text-navy-700" /> Admin Inspector Switcher
           </label>
           <div className="relative">
             <select
               value={user?.id || ''}
               onChange={(e) => switchUser(e.target.value)}
-              className="w-full bg-white border border-slate-200 text-xs text-navy-950 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-navy-600/20 cursor-pointer appearance-none pr-7 font-semibold shadow-apple-sm"
+              className="w-full bg-white border border-slate-200 text-xs text-navy-950 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-navy-600/20 cursor-pointer appearance-none pr-7 font-semibold shadow-apple-sm font-sf-text"
             >
               {users.map((u) => (
                 <option key={u.id} value={u.id} className="bg-white text-navy-950">
@@ -84,12 +85,21 @@ export const Sidebar: React.FC = () => {
             </select>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
           </div>
+
+          <Link href="/dashboard" className="block">
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold font-sf-text shadow-apple-sm transition-all"
+            >
+              <UserCheck className="w-3.5 h-3.5" /> Return to Admin Profile
+            </button>
+          </Link>
         </div>
       ) : user ? (
         <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2.5">
           <Avatar src={user.avatar_url} name={user.full_name} size="sm" />
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold text-navy-950 truncate">{user.full_name}</p>
+            <p className="text-xs font-bold text-navy-950 truncate font-sf-text">{user.full_name}</p>
             <span className={`text-[9px] px-2 py-0.2 rounded-full border font-semibold ${ROLE_BADGE_COLORS[user.role]}`}>
               {ROLE_LABELS[user.role]}
             </span>
@@ -107,7 +117,7 @@ export const Sidebar: React.FC = () => {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 group font-medium',
+                'flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all duration-150 group font-medium font-sf-text',
                 isActive
                   ? 'bg-navy-950 text-white font-semibold shadow-apple-sm'
                   : 'text-slate-600 hover:text-navy-950 hover:bg-slate-100'
@@ -127,7 +137,7 @@ export const Sidebar: React.FC = () => {
         <div className="flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] font-medium text-slate-700">Supabase Active</span>
+            <span className="text-[11px] font-medium text-slate-700 font-sf-text">Supabase Active</span>
           </div>
           {blockedCount > 0 && (
             <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-full border border-rose-200">
@@ -137,7 +147,7 @@ export const Sidebar: React.FC = () => {
         </div>
         <button
           onClick={logout}
-          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 text-xs font-bold transition-colors border border-slate-200"
+          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 text-xs font-bold transition-colors border border-slate-200 font-sf-text"
         >
           <LogOut className="w-3.5 h-3.5" /> Sign Out
         </button>

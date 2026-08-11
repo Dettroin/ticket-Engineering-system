@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Plus, Command, LogOut, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Command, LogOut, ShieldCheck, UserCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationCenter } from './NotificationCenter';
 import { Button } from '@/components/ui/Button';
@@ -36,7 +36,7 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenCreateTicket, onOpenGlobal
         >
           <div className="flex items-center gap-2">
             <Search className="w-4 h-4 text-slate-400 group-hover:text-navy-900 transition-colors" />
-            <span className="font-medium text-slate-600">Search tickets, DET-143, projects, users...</span>
+            <span className="font-medium text-slate-600 font-sf-text">Search tickets, DET-143, projects, users...</span>
           </div>
           <kbd className="hidden sm:inline-flex items-center gap-1 bg-white border border-slate-200 text-[10px] font-mono text-slate-500 px-2 py-0.5 rounded-md shadow-apple-sm">
             <Command className="w-2.5 h-2.5" /> /
@@ -46,14 +46,16 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenCreateTicket, onOpenGlobal
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
-        {/* Admin Dashboard Quick Link */}
+        {/* Admin Profile & Dashboard Return Button */}
         {isAdmin && (
-          <Link href="/dashboard">
-            <Button size="sm" variant="secondary" className="hidden lg:flex items-center gap-1.5 text-navy-950 font-bold border-navy-200">
-              <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-              <span>Back to Admin Portal</span>
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard">
+              <Button size="sm" variant="secondary" className="hidden lg:flex items-center gap-1.5 text-navy-950 font-bold border-navy-200 bg-blue-50 text-blue-700 hover:bg-blue-100">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                <span>Return to Admin Profile</span>
+              </Button>
+            </Link>
+          </div>
         )}
 
         {/* Create Ticket Button */}
@@ -73,13 +75,13 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenCreateTicket, onOpenGlobal
         {/* Notifications */}
         <NotificationCenter />
 
-        {/* User Info Pill */}
+        {/* User Info Pill & Profile Link */}
         {user && (
           <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
-            <Link href={isAdmin ? "/dashboard" : "/settings"} className="flex items-center gap-2.5 group">
+            <Link href={isAdmin ? "/settings" : "/settings"} className="flex items-center gap-2.5 group" title="Click to view My Profile">
               <Avatar src={user.avatar_url} name={user.full_name} size="sm" />
               <div className="hidden md:block text-left">
-                <p className="text-xs font-bold text-navy-950 leading-tight group-hover:text-blue-600 transition-colors">{user.full_name}</p>
+                <p className="text-xs font-bold text-navy-950 leading-tight group-hover:text-blue-600 transition-colors font-sf-text">{user.full_name}</p>
                 <span className={`text-[10px] px-2 py-0.2 rounded-full border font-semibold ${ROLE_BADGE_COLORS[user.role]}`}>
                   {ROLE_LABELS[user.role]}
                 </span>
