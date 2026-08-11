@@ -129,8 +129,8 @@ export const Sidebar: React.FC = () => {
         })}
       </nav>
 
-      {/* Footer System Status */}
-      <div className="p-3.5 border-t border-slate-100 bg-slate-50/50">
+      {/* Footer System Status & Sign Out */}
+      <div className="p-3.5 border-t border-slate-100 bg-slate-50/50 space-y-2">
         <div className="flex items-center justify-between text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

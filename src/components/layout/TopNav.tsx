@@ -1,12 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Search, Plus, Command } from 'lucide-react';
+import { Search, Plus, Command, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationCenter } from './NotificationCenter';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { ROLE_BADGE_COLORS, ROLE_LABELS } from '@/types/rbac';
+import { useRouter } from 'next/navigation';
 
 interface TopNavProps {
   onOpenCreateTicket: () => void;
@@ -14,11 +15,17 @@ interface TopNavProps {
 }
 
 export const TopNav: React.FC<TopNavProps> = ({ onOpenCreateTicket, onOpenGlobalSearch }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
     <header className="h-16 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between">
-      {/* Search Input Bar */}
+      {/* Search Bar */}
       <div className="flex items-center gap-3 flex-1 max-w-md">
         <button
           onClick={onOpenGlobalSearch}
@@ -63,6 +70,14 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenCreateTicket, onOpenGlobal
                 {ROLE_LABELS[user.role]}
               </span>
             </div>
+
+            <button
+              onClick={handleSignOut}
+              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1"
+              title="Sign Out of Session"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         )}
       </div>

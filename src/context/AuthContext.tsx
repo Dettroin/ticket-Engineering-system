@@ -3,10 +3,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Organization, Ticket, Project, Sprint, TicketComment, Notification, Subtask, GitHubPR } from '@/types/database';
 import { INITIAL_ORG, INITIAL_USERS, INITIAL_PROJECTS, INITIAL_SPRINTS, INITIAL_TICKETS, INITIAL_COMMENTS, INITIAL_NOTIFICATIONS, INITIAL_SUBTASKS, INITIAL_GITHUB_PRS } from '@/lib/mockData';
-import { UserRole, canCreateProject, canCreateTicket, canManageMembers, canManageSprints, canChangeTicketStatus } from '@/types/rbac';
+import { UserRole, canCreateProject, canCreateTicket, canManageMembers, canManageSprints } from '@/types/rbac';
 
 interface AuthContextType {
   user: User | null;
+  isAuthenticated: boolean;
   organization: Organization;
   users: User[];
   projects: Project[];
@@ -16,6 +17,8 @@ interface AuthContextType {
   subtasks: Subtask[];
   notifications: Notification[];
   githubPRs: GitHubPR[];
+  login: (email: string, password?: string) => boolean;
+  logout: () => void;
   switchUser: (userId: string) => void;
   createTicket: (newTicket: Partial<Ticket>) => Ticket;
   updateTicketStatus: (ticketId: string, status: Ticket['status']) => void;
@@ -36,8 +39,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [users] = useState<User[]>(INITIAL_USERS);
   const [organization] = useState<Organization>(INITIAL_ORG);
-  // Default to Tarun Sharma (Lead Frontend Engineer) to immediately test ticket workflows!
-  const [user, setUser] = useState<User | null>(INITIAL_USERS[2]);
+  
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [sprints, setSprints] = useState<Sprint[]>(INITIAL_SPRINTS);
@@ -47,20 +51,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
   const [githubPRs] = useState<GitHubPR[]>(INITIAL_GITHUB_PRS);
 
-  // Sync state to localStorage if available
+  // Check saved login session on mount
   useEffect(() => {
     const savedUserId = localStorage.getItem('dettroin_active_user');
-    if (savedUserId) {
+    const savedAuth = localStorage.getItem('dettroin_authenticated');
+    if (savedUserId && savedAuth === 'true') {
       const found = users.find((u) => u.id === savedUserId);
-      if (found) setUser(found);
+      if (found) {
+        setUser(found);
+        setIsAuthenticated(true);
+      } else {
+        // Fallback default
+        setUser(users[2]);
+        setIsAuthenticated(true);
+      }
+    } else {
+      // Default initial session for immediate access
+      setUser(users[2]); // Tarun Sharma (Frontend Lead)
+      setIsAuthenticated(true);
     }
   }, [users]);
+
+  const login = (emailInput: string): boolean => {
+    const targetUser = users.find((u) => u.email.toLowerCase() === emailInput.toLowerCase()) || users[0];
+    setUser(targetUser);
+    setIsAuthenticated(true);
+    localStorage.setItem('dettroin_active_user', targetUser.id);
+    localStorage.setItem('dettroin_authenticated', 'true');
+    return true;
+  };
+
+  const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('dettroin_active_user');
+    localStorage.removeItem('dettroin_authenticated');
+  };
 
   const switchUser = (userId: string) => {
     const target = users.find((u) => u.id === userId);
     if (target) {
       setUser(target);
+      setIsAuthenticated(true);
       localStorage.setItem('dettroin_active_user', target.id);
+      localStorage.setItem('dettroin_authenticated', 'true');
     }
   };
 
@@ -98,7 +132,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setTickets((prev) => [newTicket, ...prev]);
 
-    // Send notification to assignee if assigned
     if (newTicket.assignee_id && newTicket.assignee_id !== user?.id) {
       const newNotif: Notification = {
         id: `n-${Date.now()}`,
@@ -142,7 +175,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setComments((prev) => [...prev, newComment]);
 
-    // Create notification for mentioned users
     mentions.forEach((mentionedUserId) => {
       const targetTicket = tickets.find((t) => t.id === ticketId || t.ticket_number === ticketId);
       const newNotif: Notification = {
@@ -214,6 +246,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
+        isAuthenticated,
         organization,
         users,
         projects,
@@ -223,6 +256,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         subtasks,
         notifications,
         githubPRs,
+        login,
+        logout,
         switchUser,
         createTicket,
         updateTicketStatus,

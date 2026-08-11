@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { TopNav } from './TopNav';
 import { CreateTicketModal } from '@/components/tickets/CreateTicketModal';
 import { GlobalSearchModal } from '@/components/search/GlobalSearchModal';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import { usePathname } from 'next/navigation';
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -16,7 +17,6 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger shortcuts if focus is inside input/textarea
       if (
         document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA' ||
@@ -39,24 +39,26 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }, []);
 
   if (isAuthPage) {
-    return <main className="min-h-screen bg-slate-950 flex items-center justify-center p-4">{children}</main>;
+    return <main className="min-h-screen bg-slate-100 flex items-center justify-center">{children}</main>;
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950">
-      {/* Sidebar */}
-      <Sidebar />
+    <AuthGuard>
+      <div className="flex min-h-screen bg-[#f5f5f7]">
+        {/* Sidebar */}
+        <Sidebar />
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <TopNav onOpenCreateTicket={() => setIsCreateOpen(true)} onOpenGlobalSearch={() => setIsSearchOpen(true)} />
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <TopNav onOpenCreateTicket={() => setIsCreateOpen(true)} onOpenGlobalSearch={() => setIsSearchOpen(true)} />
 
-        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">{children}</main>
+          <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">{children}</main>
+        </div>
+
+        {/* Global Modals */}
+        <CreateTicketModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
+        <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
       </div>
-
-      {/* Global Modals */}
-      <CreateTicketModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
-      <GlobalSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-    </div>
+    </AuthGuard>
   );
 };
