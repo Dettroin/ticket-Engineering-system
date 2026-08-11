@@ -8,8 +8,9 @@ import DeveloperDashboardPage from './developer/page';
 import QADashboardPage from './qa/page';
 import ClientDashboardPage from './client/page';
 import { UserRole, ROLE_LABELS } from '@/types/rbac';
-import { LayoutDashboard, ShieldCheck, FolderKanban, Code, CheckSquare, Eye } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, FolderKanban, Code, CheckSquare, Eye, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 
 export default function DashboardRouterPage() {
   const { user } = useAuth();
@@ -21,6 +22,8 @@ export default function DashboardRouterPage() {
 
   // Determine current active dashboard view based on active tab override (Admin only) or user role
   const currentRoleView: UserRole = (isAdmin && activeTab as UserRole) ? (activeTab as UserRole) : user.role;
+
+  const isInspectingOtherRole = isAdmin && activeTab && activeTab !== 'admin' && activeTab !== 'super_admin';
 
   const roleTabs: { role: UserRole; label: string; icon: any }[] = [
     { role: 'admin', label: 'Admin View', icon: ShieldCheck },
@@ -54,46 +57,71 @@ export default function DashboardRouterPage() {
     <div className="space-y-6">
       {/* Role Dashboard Selector Bar — RESTRICTED TO ADMINS ONLY */}
       {isAdmin && (
-        <div className="bg-white border border-slate-200/90 rounded-2xl p-2.5 shadow-apple-sm flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 px-2">
-            <LayoutDashboard className="w-4 h-4 text-navy-800" />
-            <span className="text-xs font-bold text-navy-950">System Admin Control:</span>
-            <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-              {ROLE_LABELS[user.role]} (Inspector Mode)
-            </span>
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-apple-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-navy-950 text-white rounded-xl">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-navy-950">System Admin Control Center</span>
+                <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                  {ROLE_LABELS[user.role]}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                {isInspectingOtherRole
+                  ? `Currently inspecting ${ROLE_LABELS[currentRoleView]} dashboard view`
+                  : 'Viewing primary System Admin dashboard'}
+              </p>
+            </div>
           </div>
 
-          {/* Quick View Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {roleTabs.map((tab) => {
-              const Icon = tab.icon;
-              const isSelected =
-                activeTab === tab.role ||
-                (!activeTab &&
-                  (user.role === tab.role ||
-                    (tab.role === 'admin' && user.role === 'super_admin')));
+          {/* Return to My Admin Dashboard Button */}
+          <div className="flex items-center gap-2">
+            {isInspectingOtherRole && (
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() => setActiveTab('admin')}
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-apple-sm text-xs"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to My Admin Dashboard
+              </Button>
+            )}
 
-              return (
-                <button
-                  key={tab.role}
-                  onClick={() => setActiveTab(tab.role)}
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150',
-                    isSelected
-                      ? 'bg-navy-950 text-white shadow-apple-sm'
-                      : 'text-slate-600 hover:text-navy-950 hover:bg-slate-100'
-                  )}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
+            {/* Quick View Tabs */}
+            <div className="flex flex-wrap items-center gap-1">
+              {roleTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isSelected =
+                  (activeTab === tab.role) ||
+                  (!activeTab &&
+                    (user.role === tab.role ||
+                      (tab.role === 'admin' && user.role === 'super_admin')));
+
+                return (
+                  <button
+                    key={tab.role}
+                    onClick={() => setActiveTab(tab.role)}
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-150',
+                      isSelected
+                        ? 'bg-navy-950 text-white shadow-apple-sm'
+                        : 'text-slate-600 hover:text-navy-950 hover:bg-slate-100'
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Single Role Dashboard for Non-Admins or Selected Admin View */}
+      {/* Render Selected Role Dashboard */}
       {renderDashboardContent()}
     </div>
   );
