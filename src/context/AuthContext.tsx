@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Organization, Ticket, Project, Sprint, TicketComment, Notification, Subtask, GitHubPR } from '@/types/database';
-import { INITIAL_ORG, INITIAL_USERS, INITIAL_PROJECTS, INITIAL_SPRINTS, INITIAL_TICKETS, INITIAL_COMMENTS, INITIAL_SUBTASKS, INITIAL_GITHUB_PRS } from '@/lib/mockData';
+import { INITIAL_ORG, INITIAL_USERS, INITIAL_PROJECTS, INITIAL_SPRINTS, INITIAL_TICKETS, INITIAL_COMMENTS, INITIAL_SUBTASKS, INITIAL_NOTIFICATIONS, INITIAL_GITHUB_PRS } from '@/lib/mockData';
 import { UserRole, CustomRole, ROLE_LABELS, ROLE_BADGE_COLORS, canCreateProject, canCreateTicket, canManageMembers, canManageSprints } from '@/types/rbac';
 
 interface AuthContextType {
