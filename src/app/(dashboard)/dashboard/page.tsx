@@ -8,22 +8,22 @@ import DeveloperDashboardPage from './developer/page';
 import QADashboardPage from './qa/page';
 import ClientDashboardPage from './client/page';
 import { UserRole, ROLE_LABELS } from '@/types/rbac';
-import { LayoutDashboard, ShieldCheck, FolderKanban, Code, CheckSquare, Eye, ArrowLeft } from 'lucide-react';
+import { LayoutDashboard, ShieldCheck, FolderKanban, Code, CheckSquare, Eye, UserCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 
 export default function DashboardRouterPage() {
-  const { user } = useAuth();
+  const { user, canReturnToAdmin, returnToAdminProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
   if (!user) return null;
 
-  const isAdmin = user.role === 'admin' || user.role === 'super_admin';
+  const isAdmin = user.role === 'admin' || user.role === 'super_admin' || canReturnToAdmin;
 
   // Determine current active dashboard view based on active tab override (Admin only) or user role
   const currentRoleView: UserRole = (isAdmin && activeTab as UserRole) ? (activeTab as UserRole) : user.role;
 
-  const isInspectingOtherRole = isAdmin && activeTab && activeTab !== 'admin' && activeTab !== 'super_admin';
+  const isInspectingOtherRole = canReturnToAdmin && (user.role !== 'admin' && user.role !== 'super_admin');
 
   const roleTabs: { role: UserRole; label: string; icon: any }[] = [
     { role: 'admin', label: 'Admin View', icon: ShieldCheck },
@@ -54,8 +54,8 @@ export default function DashboardRouterPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Role Dashboard Selector Bar — RESTRICTED TO ADMINS ONLY */}
+    <div className="space-y-6 font-sf-text">
+      {/* Role Dashboard Selector Bar — RESTRICTED TO ADMIN SESSION */}
       {isAdmin && (
         <div className="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-apple-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -64,29 +64,29 @@ export default function DashboardRouterPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-navy-950">System Admin Control Center</span>
+                <span className="text-xs font-bold text-navy-950 font-sf-display">System Admin Control Center</span>
                 <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                  {ROLE_LABELS[user.role]}
+                  Active Persona: {ROLE_LABELS[user.role]}
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-medium">
                 {isInspectingOtherRole
-                  ? `Currently inspecting ${ROLE_LABELS[currentRoleView]} dashboard view`
+                  ? `Inspecting ${user.full_name}'s (${ROLE_LABELS[user.role]}) persona view`
                   : 'Viewing primary System Admin dashboard'}
               </p>
             </div>
           </div>
 
           {/* Return to My Admin Dashboard Button */}
-          <div className="flex items-center gap-2">
-            {isInspectingOtherRole && (
+          <div className="flex flex-wrap items-center gap-2">
+            {canReturnToAdmin && (
               <Button
                 size="sm"
                 variant="primary"
-                onClick={() => setActiveTab('admin')}
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow-apple-sm text-xs"
+                onClick={returnToAdminProfile}
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-apple-sm text-xs font-bold"
               >
-                <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to My Admin Dashboard
+                <UserCheck className="w-4 h-4 mr-1.5" /> Return to Admin Profile
               </Button>
             )}
 
@@ -98,7 +98,7 @@ export default function DashboardRouterPage() {
                   (activeTab === tab.role) ||
                   (!activeTab &&
                     (user.role === tab.role ||
-                      (tab.role === 'admin' && user.role === 'super_admin')));
+                      (tab.role === 'admin' && (user.role === 'super_admin' || user.role === 'admin'))));
 
                 return (
                   <button

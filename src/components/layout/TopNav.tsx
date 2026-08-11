@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Plus, Command, LogOut, ShieldCheck, UserCheck } from 'lucide-react';
+import { Search, Plus, Command, LogOut, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { NotificationCenter } from './NotificationCenter';
 import { Button } from '@/components/ui/Button';
@@ -16,14 +16,17 @@ interface TopNavProps {
 }
 
 export const TopNav: React.FC<TopNavProps> = ({ onOpenCreateTicket, onOpenGlobalSearch }) => {
-  const { user, logout } = useAuth();
+  const { user, canReturnToAdmin, returnToAdminProfile, logout } = useAuth();
   const router = useRouter();
-
-  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
 
   const handleSignOut = () => {
     logout();
     router.push('/login');
+  };
+
+  const handleReturnAdmin = () => {
+    returnToAdminProfile();
+    router.push('/dashboard');
   };
 
   return (
@@ -46,16 +49,16 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenCreateTicket, onOpenGlobal
 
       {/* Right Controls */}
       <div className="flex items-center gap-3">
-        {/* Admin Profile & Dashboard Return Button */}
-        {isAdmin && (
-          <div className="flex items-center gap-2">
-            <Link href="/dashboard">
-              <Button size="sm" variant="secondary" className="hidden lg:flex items-center gap-1.5 text-navy-950 font-bold border-navy-200 bg-blue-50 text-blue-700 hover:bg-blue-100">
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                <span>Return to Admin Profile</span>
-              </Button>
-            </Link>
-          </div>
+        {/* Admin Return Button — ALWAYS visible for Admin sessions */}
+        {canReturnToAdmin && (
+          <Button
+            size="sm"
+            onClick={handleReturnAdmin}
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold font-sf-text shadow-apple-sm"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Return to Admin Profile</span>
+          </Button>
         )}
 
         {/* Create Ticket Button */}
@@ -78,8 +81,8 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenCreateTicket, onOpenGlobal
         {/* User Info Pill & Profile Link */}
         {user && (
           <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
-            <Link href={isAdmin ? "/settings" : "/settings"} className="flex items-center gap-2.5 group" title="Click to view My Profile">
-              <Avatar src={user.avatar_url} name={user.full_name} size="sm" />
+            <Link href="/settings" className="flex items-center gap-2.5 group" title="Click to view My Profile">
+              <Avatar name={user.full_name} size="sm" />
               <div className="hidden md:block text-left">
                 <p className="text-xs font-bold text-navy-950 leading-tight group-hover:text-blue-600 transition-colors font-sf-text">{user.full_name}</p>
                 <span className={`text-[10px] px-2 py-0.2 rounded-full border font-semibold ${ROLE_BADGE_COLORS[user.role]}`}>

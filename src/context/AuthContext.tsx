@@ -7,7 +7,9 @@ import { UserRole, canCreateProject, canCreateTicket, canManageMembers, canManag
 
 interface AuthContextType {
   user: User | null;
+  originalAdminUser: User | null;
   isAuthenticated: boolean;
+  canReturnToAdmin: boolean;
   organization: Organization;
   users: User[];
   projects: Project[];
@@ -20,6 +22,7 @@ interface AuthContextType {
   login: (usernameOrEmail: string, passwordInput?: string) => { success: boolean; message?: string };
   logout: () => void;
   switchUser: (userId: string) => void;
+  returnToAdminProfile: () => void;
   createAdminUser: (userData: { fullName: string; email: string; username: string; password?: string; role: UserRole; jobTitle?: string }) => User;
   updateUserProfile: (userId: string, updates: Partial<User>) => void;
   toggleUserActiveStatus: (userId: string) => boolean;
@@ -46,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [organization] = useState<Organization>(INITIAL_ORG);
   
   const [user, setUser] = useState<User | null>(null);
+  const [originalAdminUser, setOriginalAdminUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
@@ -59,7 +63,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check saved login session on mount
   useEffect(() => {
     const savedUserId = localStorage.getItem('dettroin_active_user');
+    const savedAdminId = localStorage.getItem('dettroin_session_admin');
     const savedAuth = localStorage.getItem('dettroin_authenticated');
+
+    if (savedAdminId) {
+      const admin = users.find((u) => u.id === savedAdminId) || users[0];
+      setOriginalAdminUser(admin);
+    } else {
+      setOriginalAdminUser(users[0]);
+    }
+
     if (savedUserId && savedAuth === 'true') {
       const found = users.find((u) => u.id === savedUserId);
       if (found && found.is_active !== false) {
@@ -70,8 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(true);
       }
     } else {
-      // Default session
-      setUser(users[0]);
+      setUser(users[0]); // Alex Mercer (Admin)
+      setOriginalAdminUser(users[0]);
       setIsAuthenticated(true);
     }
   }, []);
@@ -104,24 +117,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
     localStorage.setItem('dettroin_active_user', targetUser.id);
     localStorage.setItem('dettroin_authenticated', 'true');
+
+    if (targetUser.role === 'admin' || targetUser.role === 'super_admin') {
+      setOriginalAdminUser(targetUser);
+      localStorage.setItem('dettroin_session_admin', targetUser.id);
+    }
+
     return { success: true };
   };
 
   const logout = () => {
     setUser(null);
+    setOriginalAdminUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('dettroin_active_user');
+    localStorage.removeItem('dettroin_session_admin');
     localStorage.removeItem('dettroin_authenticated');
   };
 
   const switchUser = (userId: string) => {
     const target = users.find((u) => u.id === userId);
     if (target && target.is_active !== false) {
+      // If current user is Admin, track original admin session before switching
+      if (user?.role === 'admin' || user?.role === 'super_admin') {
+        setOriginalAdminUser(user);
+        localStorage.setItem('dettroin_session_admin', user.id);
+      }
       setUser(target);
       setIsAuthenticated(true);
       localStorage.setItem('dettroin_active_user', target.id);
       localStorage.setItem('dettroin_authenticated', 'true');
     }
+  };
+
+  const returnToAdminProfile = () => {
+    const savedAdminId = localStorage.getItem('dettroin_session_admin') || users[0].id;
+    const adminUser = users.find((u) => u.id === savedAdminId) || users[0];
+    setUser(adminUser);
+    setOriginalAdminUser(adminUser);
+    setIsAuthenticated(true);
+    localStorage.setItem('dettroin_active_user', adminUser.id);
+    localStorage.setItem('dettroin_session_admin', adminUser.id);
   };
 
   const createAdminUser = (userData: { fullName: string; email: string; username: string; password?: string; role: UserRole; jobTitle?: string }): User => {
@@ -314,11 +350,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return roles.includes(user.role);
   };
 
+  const canReturnToAdmin =
+    Boolean(originalAdminUser) ||
+    user?.role === 'admin' ||
+    user?.role === 'super_admin';
+
   return (
     <AuthContext.Provider
       value={{
         user,
+        originalAdminUser,
         isAuthenticated,
+        canReturnToAdmin,
         organization,
         users,
         projects,
@@ -331,6 +374,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         switchUser,
+        returnToAdminProfile,
         createAdminUser,
         updateUserProfile,
         toggleUserActiveStatus,
