@@ -21,6 +21,8 @@ interface AuthContextType {
   notifications: Notification[];
   githubPRs: GitHubPR[];
   customRoles: CustomRole[];
+  supabaseConnected: boolean;
+  supabaseStatusMessage: string;
   login: (usernameOrEmail: string, passwordInput?: string) => { success: boolean; message?: string };
   logout: () => void;
   switchUser: (userId: string) => void;
@@ -55,6 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [originalAdminUser, setOriginalAdminUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [supabaseConnected, setSupabaseConnected] = useState<boolean>(false);
+  const [supabaseStatusMessage, setSupabaseStatusMessage] = useState<string>('Connecting to Supabase...');
   
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [sprints, setSprints] = useState<Sprint[]>(INITIAL_SPRINTS);
@@ -63,6 +67,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [subtasks, setSubtasks] = useState<Subtask[]>(INITIAL_SUBTASKS);
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
   const [githubPRs] = useState<GitHubPR[]>(INITIAL_GITHUB_PRS);
+
+  const broadcastUserSwitch = (targetUserId: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const bc = new BroadcastChannel('dettroin_user_sync');
+      bc.postMessage({ type: 'USER_SWITCH', userId: targetUserId });
+      bc.close();
+    } catch (e) {
+      // Optional BroadcastChannel fallback
+    }
+    if (isSupabaseConfigured()) {
+      try {
+        const channel = supabase.channel('user-session-sync');
+        channel.subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            channel.send({
+              type: 'broadcast',
+              event: 'user_switched',
+              payload: { userId: targetUserId, timestamp: Date.now() },
+            });
+          }
+        });
+      } catch (e) {
+        // Optional Realtime channel fallback
+      }
+    }
+  };
 
   // Load persistent users and session on mount & sync with Supabase DB if connected
   useEffect(() => {
@@ -83,34 +114,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // 2. If Supabase DB is connected, fetch remote users & sync
+    // 2. If Supabase DB is connected, fetch remote users & sync from 'users' table (FIXED: previously 'profiles')
     if (isSupabaseConfigured()) {
-      supabase
-        .from('profiles')
-        .select('*')
-        .then(({ data, error }) => {
-          if (!error && data && data.length > 0) {
-            const mappedUsers: User[] = data.map((d: any) => ({
-              id: d.id,
-              org_id: d.org_id || INITIAL_ORG.id,
-              email: d.email || `${d.username || 'user'}@dettroin.com`,
-              username: d.username || d.full_name?.toLowerCase().replace(/\s+/g, '') || 'user',
-              password: d.password || 'AdminPass@2026',
-              is_active: d.is_active !== false,
-              full_name: d.full_name || 'Team Member',
-              role: d.role || 'developer',
-              job_title: d.job_title || 'Engineer',
-              avatar_url: d.avatar_url || '',
-              created_at: d.created_at || new Date().toISOString(),
-            }));
+      (async () => {
+        try {
+          const { data, error } = await supabase.from('users').select('*');
+          if (error) {
+            console.warn('Supabase query note:', error.message);
+            setSupabaseConnected(false);
+            setSupabaseStatusMessage(`Query notice on table 'users': ${error.message}`);
+          } else {
+            setSupabaseConnected(true);
+            setSupabaseStatusMessage(`Connected & synced to table 'users' (${data?.length || 0} users retrieved).`);
+            if (data && data.length > 0) {
+              const mappedUsers: User[] = data.map((d: any) => ({
+                id: d.id,
+                org_id: d.org_id || INITIAL_ORG.id,
+                email: d.email || `${d.username || 'user'}@dettroin.com`,
+                username: d.username || d.full_name?.toLowerCase().replace(/\s+/g, '') || 'user',
+                password: d.password || 'AdminPass@2026',
+                is_active: d.is_active !== false,
+                full_name: d.full_name || 'Team Member',
+                role: d.role || 'developer',
+                job_title: d.job_title || 'Engineer',
+                avatar_url: d.avatar_url || '',
+                created_at: d.created_at || new Date().toISOString(),
+              }));
 
-            // Merge with admin fallback
-            const hasAdmin = mappedUsers.some((u) => u.username === 'admin');
-            const merged = hasAdmin ? mappedUsers : [...INITIAL_USERS, ...mappedUsers];
-            setUsers(merged);
-            localStorage.setItem('dettroin_global_users', JSON.stringify(merged));
+              const hasAdmin = mappedUsers.some((u) => u.username === 'admin');
+              const merged = hasAdmin ? mappedUsers : [...INITIAL_USERS, ...mappedUsers];
+              setUsers(merged);
+              currentUsersList = merged;
+              localStorage.setItem('dettroin_global_users', JSON.stringify(merged));
+            }
           }
-        });
+        } catch (err: any) {
+          setSupabaseConnected(false);
+          setSupabaseStatusMessage(`Supabase connection failed: ${err?.message || 'Network error'}`);
+        }
+      })();
+    } else {
+      setSupabaseConnected(false);
+      setSupabaseStatusMessage('Supabase URL/Key using default placeholder environment variables.');
     }
 
     // 3. Restore session
@@ -139,6 +184,61 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setOriginalAdminUser(currentUsersList[0]);
       setIsAuthenticated(true);
     }
+
+    // 4. Multi-Browser / Multi-Tab Synchronization Listeners
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'dettroin_active_user' && e.newValue) {
+        const syncTarget = currentUsersList.find((u) => u.id === e.newValue);
+        if (syncTarget && syncTarget.is_active !== false) {
+          setUser(syncTarget);
+          setIsAuthenticated(true);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('dettroin_user_sync');
+      bc.onmessage = (event) => {
+        if (event.data?.type === 'USER_SWITCH' && event.data?.userId) {
+          const syncTarget = currentUsersList.find((u) => u.id === event.data.userId);
+          if (syncTarget && syncTarget.is_active !== false) {
+            setUser(syncTarget);
+            setIsAuthenticated(true);
+          }
+        }
+      };
+    } catch (e) {
+      // BroadcastChannel unsupported
+    }
+
+    let realtimeChannel: any = null;
+    if (isSupabaseConfigured()) {
+      try {
+        realtimeChannel = supabase
+          .channel('user-session-sync')
+          .on('broadcast', { event: 'user_switched' }, (payload: any) => {
+            if (payload?.payload?.userId) {
+              const syncTarget = currentUsersList.find((u) => u.id === payload.payload.userId);
+              if (syncTarget && syncTarget.is_active !== false) {
+                setUser(syncTarget);
+                setIsAuthenticated(true);
+              }
+            }
+          })
+          .subscribe();
+      } catch (e) {
+        console.error('Supabase Realtime subscription error:', e);
+      }
+    }
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      if (bc) bc.close();
+      if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+    };
   }, []);
 
   const login = (usernameOrEmail: string, passwordInput?: string): { success: boolean; message?: string } => {
@@ -169,6 +269,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
     localStorage.setItem('dettroin_active_user', targetUser.id);
     localStorage.setItem('dettroin_authenticated', 'true');
+    broadcastUserSwitch(targetUser.id);
 
     if (targetUser.role === 'admin' || targetUser.role === 'super_admin') {
       setOriginalAdminUser(targetUser);
@@ -198,6 +299,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAuthenticated(true);
       localStorage.setItem('dettroin_active_user', target.id);
       localStorage.setItem('dettroin_authenticated', 'true');
+      broadcastUserSwitch(target.id);
     }
   };
 
@@ -209,6 +311,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
     localStorage.setItem('dettroin_active_user', adminUser.id);
     localStorage.setItem('dettroin_session_admin', adminUser.id);
+    broadcastUserSwitch(adminUser.id);
   };
 
   const createAdminUser = (userData: { fullName: string; email: string; username: string; password?: string; role: UserRole; jobTitle?: string }): User => {
@@ -481,6 +584,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         notifications,
         githubPRs,
         customRoles,
+        supabaseConnected,
+        supabaseStatusMessage,
         login,
         logout,
         switchUser,
